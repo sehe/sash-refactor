@@ -15,8 +15,8 @@
 #ifndef SASH_MATH_PARSER_DEF_HPP
 #define SASH_MATH_PARSER_DEF_HPP
 
-#define BOOST_SPIRIT_DEBUG
-#define BOOST_SPIRIT_QI_DEBUG
+// #define BOOST_SPIRIT_DEBUG
+// #define BOOST_SPIRIT_QI_DEBUG
 #include "parser.hpp"
 #include <boost/spirit/include/phoenix.hpp>
 
@@ -28,8 +28,7 @@ namespace qi = boost::spirit::qi;
 namespace phx = boost::phoenix;
 
 template <typename Iterator>
-template <typename TokenDef>
-grammar<Iterator>::grammar(TokenDef const& tok)
+grammar<Iterator>::grammar()
   : grammar::base_type(expression, "arithmetic expression")
 {
     /**
@@ -41,17 +40,17 @@ grammar<Iterator>::grammar(TokenDef const& tok)
     term       %= mul_expr | div_expr | factor;
 
     factor %=  
-          tok.unsigned_digit
-        | (tok.lparen >> expression >> tok.rparen)
+          qi::ulong_
+        | ('(' >> expression >> ')')
         | neg_expr
-        | (tok.add >> factor)
+        | ('+' >> factor)
         ;
 
-    add_expr %= (term    >> tok.add >> expression) ;
-    sub_expr %= (term    >> tok.sub >> expression) ;
-    mul_expr %= (factor  >> tok.mul >> term)       ;
-    div_expr %= (factor  >> tok.div >> term)       ;
-    neg_expr %= (tok.sub >> factor) ;
+    add_expr %= (term    >> '+'  >> expression) ;
+    sub_expr %= (term    >> '-'  >> expression) ;
+    mul_expr %= (factor  >> '*'  >> term)       ;
+    div_expr %= (factor  >> '\\' >> term)       ;
+    neg_expr %= ('-' >> factor) ;
 
     BOOST_SPIRIT_DEBUG_NODES(
             (expression)
@@ -64,6 +63,7 @@ grammar<Iterator>::grammar(TokenDef const& tok)
             (neg_expr)
         );
 
+    return;
     using namespace qi::labels;
     qi::on_error<qi::fail>
         (

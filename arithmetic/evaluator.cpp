@@ -5,7 +5,6 @@
 */
 
 #include "evaluator.hpp"
-#include "lexer.hpp"
 #include "parser.hpp"
 #include "ast.hpp"
 
@@ -58,22 +57,15 @@ struct evaluator : boost::static_visitor<ast::arithmetic_type>
 
 int eval_expression(const std::string& expr)
 {
-  // now we use the types defined above to create the lexer and grammar
-  // object instances needed to invoke the parsing process.
-  tokens_type tokens;        // Our lexer
-  grammar_type parser(tokens);  // Our parser
+  static const grammar_type parser;
 
-  // At this point we generate the iterator pair used to expose the
-  // tokenized input stream.
-  std::string::const_iterator it = expr.begin();
-  token_iterator_type iter = tokens.begin(it, expr.end());
-  token_iterator_type end = tokens.end();
+  // At this point we generate the iterator pair
+  iterator_type first(expr.begin());
+  iterator_type last(expr.end());
 
-  // Parsing is done based on the the token stream, not the character 
-  // stream read from the input.
   ast::expression arith_ast;
-  bool r = boost::spirit::qi::parse(iter, end, parser, arith_ast);
-  if (r && iter == end)
+  bool r = boost::spirit::qi::parse(first, last, parser, arith_ast);
+  if (r && first == last)
   {
     static const evaluator _evaluator;
     return boost::apply_visitor(_evaluator, arith_ast);

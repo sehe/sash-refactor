@@ -16,7 +16,6 @@
 #define SASH_MATH_PARSER_HPP
 
 #include "ast.hpp"
-#include "lexer.hpp"
 
 #include <boost/spirit/include/qi.hpp>
 
@@ -33,8 +32,7 @@ struct grammar
 {
 	typedef Iterator iterator_type;
 
-	template <typename TokenDef>
-	grammar(TokenDef const& tok);
+	grammar();
 
 private:
 	ast::expression arithmetic_expr;
@@ -50,11 +48,11 @@ private:
 	rule<ast::expression> factor;
 };
 
-// this is the iterator type exposed by the lexer 
-typedef tokens_type::iterator_type token_iterator_type;
+// iterator type used to expose the underlying input stream
+typedef std::string::const_iterator iterator_type;
 
 // this is the type of the grammar to parse
-typedef grammar<token_iterator_type> grammar_type;
+typedef grammar<iterator_type> grammar_type;
 
 }} // namespace sash::math
 #endif // SASH_MATH_PARSER_HPP

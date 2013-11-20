@@ -41,7 +41,7 @@ typedef binary_op<subTag> sub_op;
 typedef binary_op<mulTag> mul_op;
 typedef binary_op<divTag> div_op;
 
-typedef int arithmetic_type;
+typedef long arithmetic_type;
 
 typedef boost::variant<
       arithmetic_type

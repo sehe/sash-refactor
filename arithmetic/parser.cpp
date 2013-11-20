@@ -16,5 +16,5 @@
 
 namespace sash{
 namespace math{
-template grammar<token_iterator_type>::grammar(tokens_type const&);
+template struct grammar<iterator_type>;
 }} // namespace sash::math
