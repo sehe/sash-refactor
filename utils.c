@@ -14,6 +14,7 @@
 #include <utime.h>
 
 #include "arithmetic/evaluator.hpp"
+#include <iostream>
 
 /*
  * A chunk of data.
