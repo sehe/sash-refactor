@@ -18,6 +18,7 @@
 #define BOOST_SPIRIT_DEBUG
 #define BOOST_SPIRIT_QI_DEBUG
 #include "parser.hpp"
+#include <boost/spirit/include/phoenix.hpp>
 
 namespace sash{
 namespace math{
@@ -31,61 +32,50 @@ template <typename TokenDef>
 grammar<Iterator>::grammar(TokenDef const& tok)
   : grammar::base_type(expression, "arithmetic expression")
 {
-  RULE_DEF(expression,
-    %=  add_expr
-     |  sub_expr
-     |  term
-    );
+    /**
+     * These rules permit the automatic generation of semantic rules (AST
+     * creation) because they are typed. (see the parser.hpp to look at the
+     * type.)
+     */
+    expression %= add_expr | sub_expr | term;
+    term       %= mul_expr | div_expr | factor;
 
-  RULE_DEF(term,
-    %=  mul_expr
-     |  div_expr
-     |  factor
-    );
+    factor %=  
+          tok.unsigned_digit
+        | (tok.lparen >> expression >> tok.rparen)
+        | neg_expr
+        | (tok.add >> factor)
+        ;
 
-  RULE_DEF(factor,
-    %=  tok.unsigned_digit
-     | (tok.lparen >> expression >> tok.rparen)
-     | usub_expr
-     | (tok.add >> factor)
-    );
+    add_expr %= (term    >> tok.add >> expression) ;
+    sub_expr %= (term    >> tok.sub >> expression) ;
+    mul_expr %= (factor  >> tok.mul >> term)       ;
+    div_expr %= (factor  >> tok.div >> term)       ;
+    neg_expr %= (tok.sub >> factor) ;
 
-  /**
-  * These rules permit the automatic generation of semantic rules (AST creation) because they are typed.
-  * (see the parser.hpp to look at the type.)
-  */
-  RULE_DEF(add_expr, 
-    %= (term >> tok.add >> expression)
-    );
+    BOOST_SPIRIT_DEBUG_NODES(
+            (expression)
+            (term)
+            (factor)
+            (add_expr)
+            (sub_expr)
+            (mul_expr)
+            (div_expr)
+            (neg_expr)
+        );
 
-  RULE_DEF(sub_expr, 
-    %= (term >> tok.sub >> expression)
-    );  
-
-  RULE_DEF(mul_expr, 
-    %= (factor >> tok.mul >> term)
-    );  
-
-  RULE_DEF(div_expr, 
-    %= (factor >> tok.div >> term)
-    );
-
-  RULE_DEF(usub_expr,
-    %= (tok.sub >> factor)
-    );
-
-  using namespace qi::labels;
-  qi::on_error<qi::fail>
-  (
-    expression,
-    std::cout
-      << phx::val("Error! Expecting ")
-      << bs::_4                               // what failed?
-      << phx::val(" here: \"")
-      << phx::construct<std::string>(bs::_3, bs::_2)   // iterators to error-pos, end
-      << phx::val("\"")
-      << std::endl
-  );
+    using namespace qi::labels;
+    qi::on_error<qi::fail>
+        (
+            expression,
+            std::cout
+            << phx::val("Error! Expecting ")
+            << bs::_4                               // what failed?
+            << phx::val(" here: \"")
+            << phx::construct<std::string>(bs::_3, bs::_2)   // iterators to error-pos, end
+            << phx::val("\"")
+            << std::endl
+        );
 }
 
 }} // namespace sash::math

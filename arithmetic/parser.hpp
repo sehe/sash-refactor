@@ -16,11 +16,9 @@
 #define SASH_MATH_PARSER_HPP
 
 #include "ast.hpp"
-#include "preprocessor_rule_helper.hpp"
 #include "lexer.hpp"
 
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
 
 namespace sash{
 namespace math{
@@ -41,14 +39,15 @@ struct grammar
 private:
 	ast::expression arithmetic_expr;
 
-	QI_RULE(ast::expression(), expression);
-	QI_RULE(ast::add_op(), add_expr);
-	QI_RULE(ast::sub_op(), sub_expr);
-	QI_RULE(ast::mul_op(), mul_expr);
-	QI_RULE(ast::div_op(), div_expr);
-	QI_RULE(ast::usub_op(), usub_expr);
-	QI_RULE(ast::expression(), term);
-	QI_RULE(ast::expression(), factor);
+    template <typename Arg> using rule = qi::rule<iterator_type, Arg()>;
+	rule<ast::expression> expression;
+	rule<ast::add_op>     add_expr;
+	rule<ast::sub_op>     sub_expr;
+	rule<ast::mul_op>     mul_expr;
+	rule<ast::div_op>     div_expr;
+	rule<ast::usub_op>    neg_expr;
+	rule<ast::expression> term;
+	rule<ast::expression> factor;
 };
 
 // this is the iterator type exposed by the lexer 
